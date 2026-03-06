@@ -111,22 +111,21 @@ Display:
    ```bash
    gh project field-list <project_number> --owner <owner> --format json | jq '.fields[] | select(.name == "Status")'
    ```
-5. Configure Status field options via GraphQL (the CLI cannot edit single-select options directly):
+5. Configure Status field options via GraphQL (the CLI cannot edit single-select options directly).
+   Valid colors: GRAY, BLUE, GREEN, YELLOW, ORANGE, RED, PINK, PURPLE.
    ```bash
    gh api graphql -f query='
      mutation {
        updateProjectV2Field(input: {
-         projectId: "<PROJECT_ID>"
          fieldId: "<STATUS_FIELD_ID>"
-         dataType: SINGLE_SELECT
          singleSelectOptions: [
            {name: "Idea",      color: GRAY,   description: ""},
            {name: "Define",    color: BLUE,   description: ""},
            {name: "Design",    color: PURPLE, description: ""},
            {name: "Plan",      color: ORANGE, description: ""},
            {name: "Implement", color: YELLOW, description: ""},
-           {name: "Verify",    color: LIME,   description: ""},
-           {name: "Ship",      color: GREEN,  description: ""},
+           {name: "Verify",    color: GREEN,  description: ""},
+           {name: "Ship",      color: RED,    description: ""},
            {name: "Done",      color: PINK,   description: ""}
          ]
        }) {
@@ -146,11 +145,13 @@ Display:
    gh project field-list <project_number> --owner <owner> --format json
    ```
 
-8. Write config to `~/.config/claude-pm/<repo>.taskboard.json`:
+7. Write config to `~/.config/claude-pm/<repo>.taskboard.json`.
+   Extract `owner_type` from the create response (`owner.type`): `"User"` or `"Organization"`.
    ```json
    {
      "project_number": <number>,
      "owner": "<owner>",
+     "owner_type": "User or Organization",
      "repo": "<repo>",
      "project_id": "PVT_...",
      "field_ids": {
@@ -171,7 +172,7 @@ Display:
    }
    ```
 
-9. Tell user to configure views manually in GH UI:
+8. Tell user to configure views manually in GH UI:
    - **Board view**: columns in pipeline order (Idea → Done)
    - **Table view**: Title, Status, Plan columns
 
@@ -182,7 +183,7 @@ Display:
 1. Load config (standard repo detection + config loading). If no config exists, fail with the standard message.
 2. Inventory what will be destroyed:
    - Query GitHub Project to get item count: `gh project item-list <project_number> --owner <owner> --format json --limit 1 | jq '.totalCount'`
-   - Check for plan files: `ls plans/*.md 2>/dev/null | wc -l`
+   - Check for plan files: `find plans -name "*.md" 2>/dev/null | wc -l`
    - Config file path
 3. Display warning with full inventory:
 
@@ -196,7 +197,8 @@ This will permanently delete:
   GitHub Project: "<repo>" (owned by <owner>)
     - <N> task items with all session logs
     - All board views, fields, and configuration
-    Project URL: https://github.com/orgs/<owner>/projects/<number>
+    Project URL: https://github.com/users/<owner>/projects/<number>
+    (use /orgs/ instead of /users/ when owner_type is "Organization")
 
   Config file:
     ~/.config/claude-pm/<repo>.taskboard.json
@@ -248,7 +250,7 @@ Teardown complete.
 
    [<timestamp>] **Define started**
    ```
-6. Determine plan file number: count existing `plans/*.md` files, take max number + 1, zero-pad to 3
+6. Determine plan file number: `find plans -name "*.md" 2>/dev/null`, take max number + 1, zero-pad to 3
 7. Create plan file at `plans/NNN-short-title.md` with just the title header:
    ```markdown
    # <Title>
