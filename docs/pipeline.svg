@@ -1,0 +1,160 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 320" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0d1117"/>
+      <stop offset="100%" stop-color="#161b22"/>
+    </linearGradient>
+    <linearGradient id="stage1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#6e7681"/>
+      <stop offset="100%" stop-color="#484f58"/>
+    </linearGradient>
+    <linearGradient id="stage2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#da3633"/>
+      <stop offset="100%" stop-color="#b62324"/>
+    </linearGradient>
+    <linearGradient id="stage3" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#d29922"/>
+      <stop offset="100%" stop-color="#bb8009"/>
+    </linearGradient>
+    <linearGradient id="stage4" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#e3b341"/>
+      <stop offset="100%" stop-color="#d29922"/>
+    </linearGradient>
+    <linearGradient id="stage5" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#3fb950"/>
+      <stop offset="100%" stop-color="#238636"/>
+    </linearGradient>
+    <linearGradient id="stage6" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#58a6ff"/>
+      <stop offset="100%" stop-color="#1f6feb"/>
+    </linearGradient>
+    <linearGradient id="stage7" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#bc8cff"/>
+      <stop offset="100%" stop-color="#8b5cf6"/>
+    </linearGradient>
+    <linearGradient id="stage8" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#6e7681"/>
+      <stop offset="100%" stop-color="#484f58"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="900" height="320" rx="12" fill="url(#bg)"/>
+  <rect x="0.5" y="0.5" width="899" height="319" rx="12" fill="none" stroke="#30363d" stroke-width="1"/>
+
+  <!-- Title -->
+  <text x="450" y="42" text-anchor="middle" fill="#c9d1d9" font-size="15" font-weight="600" letter-spacing="0.5">THE PIPELINE</text>
+  <line x1="350" y1="52" x2="550" y2="52" stroke="#30363d" stroke-width="1"/>
+
+  <!-- Stage cards -->
+  <!-- Idea -->
+  <g filter="url(#shadow)">
+    <rect x="28" y="75" width="88" height="88" rx="10" fill="url(#stage1)" opacity="0.9"/>
+    <text x="72" y="110" text-anchor="middle" fill="#f0f6fc" font-size="22">💡</text>
+    <text x="72" y="137" text-anchor="middle" fill="#f0f6fc" font-size="12" font-weight="600">Idea</text>
+  </g>
+  <!-- Arrow -->
+  <path d="M120 119 L135 119" stroke="#484f58" stroke-width="2" fill="none" marker-end="url(#arr)"/>
+  <defs><marker id="arr" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="#484f58"/></marker></defs>
+
+  <!-- Define -->
+  <g filter="url(#shadow)">
+    <rect x="140" y="75" width="88" height="88" rx="10" fill="url(#stage2)" opacity="0.9"/>
+    <text x="184" y="110" text-anchor="middle" fill="#f0f6fc" font-size="22">🎯</text>
+    <text x="184" y="137" text-anchor="middle" fill="#f0f6fc" font-size="12" font-weight="600">Define</text>
+  </g>
+  <path d="M232 119 L247 119" stroke="#484f58" stroke-width="2" fill="none" marker-end="url(#arr)"/>
+
+  <!-- Design -->
+  <g filter="url(#shadow)">
+    <rect x="252" y="75" width="88" height="88" rx="10" fill="url(#stage3)" opacity="0.9"/>
+    <text x="296" y="110" text-anchor="middle" fill="#f0f6fc" font-size="22">✏️</text>
+    <text x="296" y="137" text-anchor="middle" fill="#f0f6fc" font-size="12" font-weight="600">Design</text>
+  </g>
+  <path d="M344 119 L359 119" stroke="#484f58" stroke-width="2" fill="none" marker-end="url(#arr)"/>
+
+  <!-- Plan -->
+  <g filter="url(#shadow)">
+    <rect x="364" y="75" width="88" height="88" rx="10" fill="url(#stage4)" opacity="0.9"/>
+    <text x="408" y="110" text-anchor="middle" fill="#f0f6fc" font-size="22">🗺️</text>
+    <text x="408" y="137" text-anchor="middle" fill="#f0f6fc" font-size="12" font-weight="600">Plan</text>
+  </g>
+  <path d="M456 119 L471 119" stroke="#484f58" stroke-width="2" fill="none" marker-end="url(#arr)"/>
+
+  <!-- Implement -->
+  <g filter="url(#shadow)">
+    <rect x="476" y="75" width="88" height="88" rx="10" fill="url(#stage5)" opacity="0.9"/>
+    <text x="520" y="110" text-anchor="middle" fill="#f0f6fc" font-size="22">⚡</text>
+    <text x="520" y="137" text-anchor="middle" fill="#f0f6fc" font-size="12" font-weight="600">Implement</text>
+  </g>
+  <path d="M568 119 L583 119" stroke="#484f58" stroke-width="2" fill="none" marker-end="url(#arr)"/>
+
+  <!-- Verify -->
+  <g filter="url(#shadow)">
+    <rect x="588" y="75" width="88" height="88" rx="10" fill="url(#stage6)" opacity="0.9"/>
+    <text x="632" y="110" text-anchor="middle" fill="#f0f6fc" font-size="22">🔍</text>
+    <text x="632" y="137" text-anchor="middle" fill="#f0f6fc" font-size="12" font-weight="600">Verify</text>
+  </g>
+  <path d="M680 119 L695 119" stroke="#484f58" stroke-width="2" fill="none" marker-end="url(#arr)"/>
+
+  <!-- Ship -->
+  <g filter="url(#shadow)">
+    <rect x="700" y="75" width="88" height="88" rx="10" fill="url(#stage7)" opacity="0.9"/>
+    <text x="744" y="110" text-anchor="middle" fill="#f0f6fc" font-size="22">🚀</text>
+    <text x="744" y="137" text-anchor="middle" fill="#f0f6fc" font-size="12" font-weight="600">Ship</text>
+  </g>
+  <path d="M792 119 L807 119" stroke="#484f58" stroke-width="2" fill="none" marker-end="url(#arr)"/>
+
+  <!-- Done -->
+  <g filter="url(#shadow)">
+    <rect x="812" y="75" width="60" height="88" rx="10" fill="url(#stage8)" opacity="0.5"/>
+    <text x="842" y="110" text-anchor="middle" fill="#8b949e" font-size="22">✓</text>
+    <text x="842" y="137" text-anchor="middle" fill="#8b949e" font-size="12" font-weight="600">Done</text>
+  </g>
+
+  <!-- Rework loop arrow (Verify → Implement) -->
+  <path d="M610 167 C610 210 542 210 542 167" stroke="#58a6ff" stroke-width="1.5" fill="none" stroke-dasharray="4,3" marker-end="url(#arr2)"/>
+  <defs><marker id="arr2" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="#58a6ff"/></marker></defs>
+  <text x="576" y="223" text-anchor="middle" fill="#58a6ff" font-size="10" opacity="0.8">rework</text>
+
+  <!-- Descriptions row -->
+  <text x="72" y="195" text-anchor="middle" fill="#8b949e" font-size="9.5">Capture</text>
+  <text x="72" y="207" text-anchor="middle" fill="#8b949e" font-size="9.5">the idea</text>
+
+  <text x="184" y="195" text-anchor="middle" fill="#8b949e" font-size="9.5">Articulate</text>
+  <text x="184" y="207" text-anchor="middle" fill="#8b949e" font-size="9.5">the problem</text>
+
+  <text x="296" y="195" text-anchor="middle" fill="#8b949e" font-size="9.5">Explore</text>
+  <text x="296" y="207" text-anchor="middle" fill="#8b949e" font-size="9.5">solutions</text>
+
+  <text x="408" y="195" text-anchor="middle" fill="#8b949e" font-size="9.5">Map the</text>
+  <text x="408" y="207" text-anchor="middle" fill="#8b949e" font-size="9.5">codebase</text>
+
+  <text x="520" y="195" text-anchor="middle" fill="#8b949e" font-size="9.5">Write</text>
+  <text x="520" y="207" text-anchor="middle" fill="#8b949e" font-size="9.5">the code</text>
+
+  <text x="632" y="195" text-anchor="middle" fill="#8b949e" font-size="9.5">Skeptical</text>
+  <text x="632" y="207" text-anchor="middle" fill="#8b949e" font-size="9.5">review</text>
+
+  <text x="744" y="195" text-anchor="middle" fill="#8b949e" font-size="9.5">Docs, clean,</text>
+  <text x="744" y="207" text-anchor="middle" fill="#8b949e" font-size="9.5">push</text>
+
+  <!-- Key features footer -->
+  <line x1="28" y1="245" x2="872" y2="245" stroke="#21262d" stroke-width="1"/>
+
+  <circle cx="65" cy="272" r="4" fill="#3fb950"/>
+  <text x="78" y="276" fill="#8b949e" font-size="11">Conversational transitions — agent summarizes, you confirm naturally</text>
+
+  <circle cx="65" cy="296" r="4" fill="#58a6ff"/>
+  <text x="78" y="300" fill="#8b949e" font-size="11">Phase regression — any stage can go back when the agent finds a problem</text>
+</svg>
