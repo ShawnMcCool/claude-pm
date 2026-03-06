@@ -196,29 +196,29 @@ Display:
 
 8. Open the project in the browser: `gh project view <project_number> --owner <OWNER> --web`
 
-9. The board view is ready — columns are auto-generated from the Status field options. Display the instructions below for the one manual step (the API cannot create views):
+9. Display setup complete message:
 
 ```
-Your board view is ready (Idea → Done columns).
+Setup complete! Your project has 8 status columns (Idea → Done).
 
-To add a Table view:
-  1. Click "+ New view" (tab bar, top-left)
-  2. Select "Table"
-  3. Click "+" in the column header row → add "Plan"
+The default view is a table. Use `/task board` to open the board layout,
+or switch manually via the View button → Board in the GitHub UI.
 
-The Plan column shows the path to each task's plan file, linking board
-items to their living design docs (problem statement → design → criteria).
+Optional: add a "Plan" column to the table view — click "+" in the
+column header row → select "Plan". This shows the path to each task's
+plan file, linking board items to their living design docs.
 ```
-
-After showing the instructions, ask: "Once that's done, would you like to see your new board?" If yes, open it: `gh project view <project_number> --owner <OWNER> --web`
 
 ---
 
 ## Subcommand: board
 
 1. Load config (standard repo detection + config loading). If no config exists, fail with the standard message.
-2. Open: `gh project view <project_number> --owner <owner> --web`
-3. Confirm: "Opened project board for `<repo>`."
+2. Build the board URL based on `owner_type`:
+   - Organization: `https://github.com/orgs/<owner>/projects/<project_number>?layout=board`
+   - User: `https://github.com/users/<owner>/projects/<project_number>?layout=board`
+3. Open it: run `open <url>` (macOS) or `xdg-open <url>` (Linux).
+4. Confirm: "Opened project board for `<repo>`."
 
 ---
 

@@ -42,6 +42,12 @@ This repo uses Jujutsu (`jj`). A `.jj/` directory exists — do not use raw git 
 - `gh auth refresh -h github.com -s project` — the `-h github.com` flag is required in non-interactive terminals or the command hangs
 - GraphQL API needed to edit single-select field options (CLI can't do this directly)
 
+## GitHub Projects API limitations
+
+- **No view mutations**: The GraphQL API has no `createProjectV2View` or `updateProjectV2View` mutations. Views (table, board, roadmap) cannot be created or modified programmatically — only through the UI.
+- **Default view is always Table**: `gh project create` and `gh project view --web` both use the default table layout. To open a board, construct the URL directly with `?layout=board` appended (e.g. `https://github.com/orgs/<owner>/projects/<number>?layout=board`).
+- **URL format varies by owner type**: orgs use `/orgs/<owner>/projects/<n>`, users use `/users/<owner>/projects/<n>`. The `owner_type` field in config (`"User"` or `"Organization"`) determines which.
+
 ## Editing skills
 
 Each skill SKILL.md has YAML frontmatter (`name`, `description`) and follows a strict structure: Input format → Conversation/work protocol → Phase confirmation → Completion block → Hard constraints. When editing skills, preserve this structure and the completion protocol — the command depends on parsing it.
