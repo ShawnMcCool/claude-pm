@@ -168,7 +168,7 @@ Display:
 6. Ensure config directory exists: `mkdir -p ~/.config/claude-pm`
 
 7. Write config to `~/.config/claude-pm/<DETECTED_REPO>.taskboard.json`.
-   Extract `owner_type` from the create response (`owner.type`): `"User"` or `"Organization"`.
+   Use `owner_type` from the fork resolution query (step 4): `"User"` or `"Organization"`.
    ```json
    {
      "project_number": <number>,
