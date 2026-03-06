@@ -54,7 +54,7 @@ The command handles all board I/O. Skills are pure phases — they receive conte
 ### Install
 
 ```bash
-git clone https://github.com/your-org/claude-pm.git ~/src/claude-pm
+git clone https://github.com/ShawnMcCool/claude-pm.git ~/src/claude-pm
 cd ~/src/claude-pm
 ./install.sh
 ```
@@ -258,21 +258,22 @@ Config is stored per repo at `~/.config/claude-pm/<repo>.taskboard.json`:
 {
   "project_number": 1,
   "owner": "your-org",
+  "owner_type": "User",
   "repo": "your-repo",
   "project_id": "PVT_...",
   "field_ids": {
-    "status": "PVTF_...",
+    "status": "PVTSSF_...",
     "plan": "PVTF_..."
   },
   "status_option_ids": {
-    "Idea": "PVTSSF_...",
-    "Define": "PVTSSF_...",
-    "Design": "PVTSSF_...",
-    "Plan": "PVTSSF_...",
-    "Implement": "PVTSSF_...",
-    "Verify": "PVTSSF_...",
-    "Ship": "PVTSSF_...",
-    "Done": "PVTSSF_..."
+    "Idea": "<hex-id>",
+    "Define": "<hex-id>",
+    "Design": "<hex-id>",
+    "Plan": "<hex-id>",
+    "Implement": "<hex-id>",
+    "Verify": "<hex-id>",
+    "Ship": "<hex-id>",
+    "Done": "<hex-id>"
   },
   "available_skills": []
 }

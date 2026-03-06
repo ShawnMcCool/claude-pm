@@ -38,8 +38,8 @@ This repo uses Jujutsu (`jj`). A `.jj/` directory exists — do not use raw git 
 
 ## Dependencies
 
-- GitHub CLI (`gh`) authenticated with `read:project` and `project` scopes
-- `gh auth refresh -h github.com -s read:project -s project` — the `-h github.com` flag is required in non-interactive terminals or the command hangs
+- GitHub CLI (`gh`) authenticated with the `project` scope (implies `read:project`)
+- `gh auth refresh -h github.com -s project` — the `-h github.com` flag is required in non-interactive terminals or the command hangs
 - GraphQL API needed to edit single-select field options (CLI can't do this directly)
 
 ## Editing skills

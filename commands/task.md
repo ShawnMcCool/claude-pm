@@ -31,6 +31,8 @@ if [ -d ".jj" ]; then
   REMOTE_URL=$(jj git remote list 2>/dev/null | head -1 | awk '{print $2}')
 elif [ -d "../.jj" ]; then
   REMOTE_URL=$(cd .. && jj git remote list 2>/dev/null | head -1 | awk '{print $2}')
+else
+  REMOTE_URL=$(git remote get-url origin 2>/dev/null)
 fi
 
 OWNER_REPO=$(echo "$REMOTE_URL" | sed 's|.*github\.com[:/]||;s|\.git$||')
@@ -95,9 +97,9 @@ Display:
 
 1. Check `gh` CLI installed: `which gh`. If missing → "Install the GitHub CLI: https://cli.github.com/"
 2. Check auth: `gh auth status`. If not authenticated → "Run `gh auth login` first."
-3. **Project scope check**: Parse `gh auth status` output for `read:project` and `project` scopes. If either is missing:
-   - Warn the user: "Missing project scopes. This will print a URL and code — open the URL in your browser and enter the code to authorize."
-   - Run: `gh auth refresh -h github.com -s read:project -s project`
+3. **Project scope check**: Parse `gh auth status` output for the `project` scope (which implies `read:project`). If missing:
+   - Warn the user: "Missing project scope. This will print a URL and code — open the URL in your browser and enter the code to authorize."
+   - Run: `gh auth refresh -h github.com -s project`
 4. **Owner confirmation**: Show `DETECTED_OWNER` and `DETECTED_REPO` to the user. Ask them to confirm or provide the correct org/user for the GitHub Project.
 5. Check for existing project: `gh project list --owner <owner> --format json | jq '.projects[] | select(.title == "<repo>")'`. If exists → "Project '<repo>' already exists for <owner>. Config file may need to be created manually — check the project in GH UI."
 6. Check config file exists: if `~/.config/claude-pm/<repo>.taskboard.json` exists → "Setup already complete for this repo."
@@ -140,10 +142,7 @@ Display:
    ```
    Extract option IDs directly from the mutation response.
 
-6. Verify by reading back all field IDs:
-   ```bash
-   gh project field-list <project_number> --owner <owner> --format json
-   ```
+6. Ensure config directory exists: `mkdir -p ~/.config/claude-pm`
 
 7. Write config to `~/.config/claude-pm/<repo>.taskboard.json`.
    Extract `owner_type` from the create response (`owner.type`): `"User"` or `"Organization"`.
@@ -159,20 +158,20 @@ Display:
        "plan": "PVTF_..."
      },
      "status_option_ids": {
-       "Idea": "PVTSSF_...",
-       "Define": "PVTSSF_...",
-       "Design": "PVTSSF_...",
-       "Plan": "PVTSSF_...",
-       "Implement": "PVTSSF_...",
-       "Verify": "PVTSSF_...",
-       "Ship": "PVTSSF_...",
-       "Done": "PVTSSF_..."
+       "Idea": "<hex-id>",
+       "Define": "<hex-id>",
+       "Design": "<hex-id>",
+       "Plan": "<hex-id>",
+       "Implement": "<hex-id>",
+       "Verify": "<hex-id>",
+       "Ship": "<hex-id>",
+       "Done": "<hex-id>"
      },
      "available_skills": []
    }
    ```
 
-8. Tell user to configure views manually in GH UI:
+8. Tell the user to configure views manually in GH UI:
    - **Board view**: columns in pipeline order (Idea → Done)
    - **Table view**: Title, Status, Plan columns
 
@@ -182,7 +181,7 @@ Display:
 
 1. Load config (standard repo detection + config loading). If no config exists, fail with the standard message.
 2. Inventory what will be destroyed:
-   - Query GitHub Project to get item count: `gh project item-list <project_number> --owner <owner> --format json --limit 1 | jq '.totalCount'`
+   - Query GitHub Project to get item count: `gh project item-list <project_number> --owner <owner> --format json --limit 100 | jq '.items | length'`
    - Check for plan files: `find plans -name "*.md" 2>/dev/null | wc -l`
    - Config file path
 3. Display warning with full inventory:

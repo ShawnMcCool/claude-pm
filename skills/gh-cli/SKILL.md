@@ -12,10 +12,10 @@ gh auth status
 
 The output includes a `Token scopes:` line. Parse it to check for specific scopes.
 
-To add project-related scopes:
+To add the project scope (implies `read:project`):
 
 ```bash
-gh auth refresh -h github.com -s read:project -s project
+gh auth refresh -h github.com -s project
 ```
 
 The `-h github.com` flag is **required** in non-interactive terminals (e.g. Claude Code's Bash tool). Without it, `gh auth refresh` prompts for a hostname and hangs.
@@ -58,17 +58,15 @@ The `gh` CLI cannot edit single-select field options directly. Use the GraphQL A
 gh api graphql -f query='
   mutation {
     updateProjectV2Field(input: {
-      projectId: "<PROJECT_ID>"
       fieldId: "<FIELD_ID>"
-      dataType: SINGLE_SELECT
       singleSelectOptions: [
         {name: "Idea",      color: GRAY,   description: ""},
         {name: "Define",    color: BLUE,   description: ""},
         {name: "Design",    color: PURPLE, description: ""},
         {name: "Plan",      color: ORANGE, description: ""},
         {name: "Implement", color: YELLOW, description: ""},
-        {name: "Verify",    color: LIME,   description: ""},
-        {name: "Ship",      color: GREEN,  description: ""},
+        {name: "Verify",    color: GREEN,  description: ""},
+        {name: "Ship",      color: RED,    description: ""},
         {name: "Done",      color: PINK,   description: ""}
       ]
     }) {
@@ -86,7 +84,7 @@ The mutation response includes the option IDs — extract them directly, no sepa
 
 ### Available colors
 
-`GRAY`, `BLUE`, `GREEN`, `YELLOW`, `ORANGE`, `RED`, `PINK`, `PURPLE`, `LIME`
+`GRAY`, `BLUE`, `GREEN`, `YELLOW`, `ORANGE`, `RED`, `PINK`, `PURPLE`
 
 ### Read back field options (verification)
 
@@ -101,7 +99,7 @@ gh project field-list <NUMBER> --owner <OWNER> --format json \
 |---------|-------|-----|
 | `gh auth refresh` hangs | Missing `-h github.com` in non-interactive terminal | Add `-h github.com` |
 | `could not create project` | Missing `project` scope | `gh auth refresh -h github.com -s project` |
-| `could not read project` | Missing `read:project` scope | `gh auth refresh -h github.com -s read:project` |
+| `could not read project` | Missing `project` scope | `gh auth refresh -h github.com -s project` |
 | `project not found` for org | Owner is personal user, not the org | Use correct org name as owner |
 | `field-create` can't set options | CLI doesn't support single-select option editing | Use GraphQL `updateProjectV2Field` mutation |
 | Device flow code not entered | User wasn't warned, browser didn't open | Warn user before running auth commands |
