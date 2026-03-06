@@ -171,9 +171,38 @@ Display:
    }
    ```
 
-8. Tell the user to configure views manually in GH UI:
-   - **Board view**: columns in pipeline order (Idea → Done)
-   - **Table view**: Title, Status, Plan columns
+8. Open the project in the browser: `gh project view <project_number> --owner <owner> --web`
+
+9. Display the manual view setup instructions below. The GitHub API does not support creating or configuring views — this is the only step that requires manual work.
+
+```
+========================================
+  MANUAL SETUP REQUIRED
+========================================
+
+Your project is open in the browser. Two views need configuring:
+
+── 1. BOARD VIEW (the default view) ──────────────
+
+The default "Board" view starts with Todo / In Progress / Done
+columns. You need to replace these with the pipeline columns:
+
+  a. Click the ••• menu on each default column header
+     → "Delete column" to remove Todo, In Progress, and Done
+  b. Click "+ New column" (right side of the board)
+     → Add columns IN THIS ORDER, one at a time:
+       Idea → Define → Design → Plan → Implement → Verify → Ship → Done
+
+── 2. TABLE VIEW ─────────────────────────────────
+
+  a. Click "+ New view" (tab bar, top of project)
+     → Select "Table"
+  b. Click the "+" button in the column header area
+     → Add the "Plan" field as a visible column
+  c. (Optional) Hide any fields you don't need
+
+========================================
+```
 
 ---
 
