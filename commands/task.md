@@ -19,21 +19,28 @@ Parse `$ARGUMENTS` to extract the subcommand and its arguments:
 | `note <rest>` | note | see note parsing below |
 | `abandon <number> <rest>` | abandon | number, reason = `<rest>` (optional) |
 | `setup` | setup | (none) |
+| `teardown` | teardown | (none) |
 | (empty or unrecognized) | help | (none) |
 
 ## Repo detection
 
-Detect the current repo:
+Detect the current repo owner and name:
 
 ```bash
 if [ -d ".jj" ]; then
-  jj git remote list 2>/dev/null | head -1 | sed 's|.*/||;s|\.git$||'
+  REMOTE_URL=$(jj git remote list 2>/dev/null | head -1 | awk '{print $2}')
 elif [ -d "../.jj" ]; then
-  (cd .. && jj git remote list 2>/dev/null | head -1 | sed 's|.*/||;s|\.git$||')
+  REMOTE_URL=$(cd .. && jj git remote list 2>/dev/null | head -1 | awk '{print $2}')
 fi
+
+OWNER_REPO=$(echo "$REMOTE_URL" | sed 's|.*github\.com[:/]||;s|\.git$||')
+DETECTED_OWNER=$(echo "$OWNER_REPO" | cut -d/ -f1)
+DETECTED_REPO=$(echo "$OWNER_REPO" | cut -d/ -f2)
 ```
 
-Load config from `~/.config/claude-pm/<repo>.taskboard.json`. If missing, fail with: "No taskboard configured for this repo. Run `/task setup` first."
+Note: `DETECTED_OWNER` may be a personal fork rather than the actual org. The setup subcommand confirms this with the user; other subcommands use the `owner` from the saved config.
+
+Load config from `~/.config/claude-pm/<DETECTED_REPO>.taskboard.json`. If missing, fail with: "No taskboard configured for this repo. Run `/task setup` first."
 
 Store the loaded config in your working memory — you'll reference `project_number`, `owner`, `field_ids`, and `status_option_ids` throughout.
 
@@ -77,6 +84,7 @@ Display:
   note [number] <text> Append note to task body
   abandon <number>     Archive task, delete plan file
   setup                Bootstrap GitHub Project for this repo
+  teardown             Delete GitHub Project and config for this repo
 ```
 
 ---
@@ -87,30 +95,56 @@ Display:
 
 1. Check `gh` CLI installed: `which gh`. If missing → "Install the GitHub CLI: https://cli.github.com/"
 2. Check auth: `gh auth status`. If not authenticated → "Run `gh auth login` first."
-3. Check for existing project: `gh project list --owner <owner> --format json | jq '.projects[] | select(.title == "<repo>")'`. If exists → "Project '<repo>' already exists for <owner>. Config file may need to be created manually — check the project in GH UI."
-4. Check config file exists: if `~/.config/claude-pm/<repo>.taskboard.json` exists → "Setup already complete for this repo."
+3. **Project scope check**: Parse `gh auth status` output for `read:project` and `project` scopes. If either is missing:
+   - Warn the user: "Missing project scopes. This will print a URL and code — open the URL in your browser and enter the code to authorize."
+   - Run: `gh auth refresh -h github.com -s read:project -s project`
+4. **Owner confirmation**: Show `DETECTED_OWNER` and `DETECTED_REPO` to the user. Ask them to confirm or provide the correct org/user for the GitHub Project.
+5. Check for existing project: `gh project list --owner <owner> --format json | jq '.projects[] | select(.title == "<repo>")'`. If exists → "Project '<repo>' already exists for <owner>. Config file may need to be created manually — check the project in GH UI."
+6. Check config file exists: if `~/.config/claude-pm/<repo>.taskboard.json` exists → "Setup already complete for this repo."
 
 **Steps**:
 
-1. Warn user: "This may open a browser for GitHub re-authentication."
-2. `gh auth refresh -s read:project -s project`
-3. Create project: `gh project create --owner <owner> --title "<repo>" --format json`
-4. Extract project number and ID from the response
-5. Create Plan field: `gh project field-create <project_number> --owner <owner> --name "Plan" --data-type TEXT --format json`
-6. Configure Status field options. Get the Status field ID:
+1. Create project: `gh project create --owner <owner> --title "<repo>" --format json`
+2. Extract project number and ID from the response
+3. Create Plan field: `gh project field-create <project_number> --owner <owner> --name "Plan" --data-type TEXT --format json`
+4. Get the Status field ID:
    ```bash
    gh project field-list <project_number> --owner <owner> --format json | jq '.fields[] | select(.name == "Status")'
    ```
-   The default Status field comes with "Todo", "In Progress", "Done". We need to delete those and create our 8 statuses. Use `gh project field-create` or `gh api` as needed to set:
-   `Idea`, `Define`, `Design`, `Plan`, `Implement`, `Verify`, `Ship`, `Done`
+5. Configure Status field options via GraphQL (the CLI cannot edit single-select options directly):
+   ```bash
+   gh api graphql -f query='
+     mutation {
+       updateProjectV2Field(input: {
+         projectId: "<PROJECT_ID>"
+         fieldId: "<STATUS_FIELD_ID>"
+         dataType: SINGLE_SELECT
+         singleSelectOptions: [
+           {name: "Idea",      color: GRAY,   description: ""},
+           {name: "Define",    color: BLUE,   description: ""},
+           {name: "Design",    color: PURPLE, description: ""},
+           {name: "Plan",      color: ORANGE, description: ""},
+           {name: "Implement", color: YELLOW, description: ""},
+           {name: "Verify",    color: LIME,   description: ""},
+           {name: "Ship",      color: GREEN,  description: ""},
+           {name: "Done",      color: PINK,   description: ""}
+         ]
+       }) {
+         projectV2Field {
+           ... on ProjectV2SingleSelectField {
+             options { id name }
+           }
+         }
+       }
+     }
+   '
+   ```
+   Extract option IDs directly from the mutation response.
 
-   **Note**: The `gh` CLI may not support editing single-select options directly. If so, tell the user to configure the Status field manually in the GH Project Settings UI with the 8 values in order, then re-run `/task setup` to read back the IDs.
-
-7. Read back all IDs:
+6. Verify by reading back all field IDs:
    ```bash
    gh project field-list <project_number> --owner <owner> --format json
    ```
-   Extract field IDs and status option IDs.
 
 8. Write config to `~/.config/claude-pm/<repo>.taskboard.json`:
    ```json
@@ -140,6 +174,59 @@ Display:
 9. Tell user to configure views manually in GH UI:
    - **Board view**: columns in pipeline order (Idea → Done)
    - **Table view**: Title, Status, Plan columns
+
+---
+
+## Subcommand: teardown
+
+1. Load config (standard repo detection + config loading). If no config exists, fail with the standard message.
+2. Inventory what will be destroyed:
+   - Query GitHub Project to get item count: `gh project item-list <project_number> --owner <owner> --format json --limit 1 | jq '.totalCount'`
+   - Check for plan files: `ls plans/*.md 2>/dev/null | wc -l`
+   - Config file path
+3. Display warning with full inventory:
+
+```
+========================================
+  TEARDOWN — PERMANENT DESTRUCTION
+========================================
+
+This will permanently delete:
+
+  GitHub Project: "<repo>" (owned by <owner>)
+    - <N> task items with all session logs
+    - All board views, fields, and configuration
+    Project URL: https://github.com/orgs/<owner>/projects/<number>
+
+  Config file:
+    ~/.config/claude-pm/<repo>.taskboard.json
+
+  Plan files (<X> found):
+    plans/001-foo.md
+    plans/002-bar.md
+    ...
+
+  (or: No plan files found.)
+
+This cannot be undone.
+
+========================================
+```
+
+4. If plan files exist, use `AskUserQuestion` asking: "Do you want to include plan files in the teardown?" (Yes/No)
+5. Use `AskUserQuestion` for final confirmation. Display the warning text and ask the user to type their response. The ONLY accepted confirmation is the exact phrase: **delete it all**. Any other input aborts with "Teardown aborted."
+6. On confirmation, execute in order:
+   a. Delete GitHub Project: `gh project delete <project_number> --owner <owner> --format json`
+   b. Delete config file: `rm ~/.config/claude-pm/<repo>.taskboard.json`
+   c. If user opted in: delete each plan file listed
+   d. If `plans/` directory is now empty, remove it: `rmdir plans 2>/dev/null`
+7. Confirm completion:
+```
+Teardown complete.
+  - GitHub Project "<repo>" deleted
+  - Config file removed
+  - <N> plan files deleted (or: Plan files kept)
+```
 
 ---
 

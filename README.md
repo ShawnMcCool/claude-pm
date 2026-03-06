@@ -135,6 +135,14 @@ Mid-conversation, the task number is optional — the agent knows which task you
 
 Requires confirmation. Archives the board item and deletes the plan file.
 
+### Tear down a project
+
+```
+/task teardown
+```
+
+Deletes the GitHub Project board and config file for the current repo. Shows a full inventory of what will be destroyed (item count, plan files, config path) and asks whether to include plan files. Requires you to type the exact phrase `delete it all` to confirm — anything else aborts.
+
 ---
 
 ## The pipeline
