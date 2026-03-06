@@ -19,6 +19,7 @@ Parse `$ARGUMENTS` to extract the subcommand and its arguments:
 | `note <rest>` | note | see note parsing below |
 | `abandon <number> <rest>` | abandon | number, reason = `<rest>` (optional) |
 | `setup` | setup | (none) |
+| `board` | board | (none) |
 | `teardown` | teardown | (none) |
 | (empty or unrecognized) | help | (none) |
 
@@ -40,7 +41,7 @@ DETECTED_OWNER=$(echo "$OWNER_REPO" | cut -d/ -f1)
 DETECTED_REPO=$(echo "$OWNER_REPO" | cut -d/ -f2)
 ```
 
-Note: `DETECTED_OWNER` may be a personal fork rather than the actual org. The setup subcommand confirms this with the user; other subcommands use the `owner` from the saved config.
+Note: `DETECTED_OWNER` may be a personal fork rather than the actual org. The setup subcommand resolves forks and confirms with the user; other subcommands use the `owner` from the saved config. The config filename always uses `DETECTED_REPO` (which may be the fork name) so non-setup subcommands can find it via the local remote URL. The `repo` field inside the config stores the canonical (resolved) name, used for the GitHub Project title and display.
 
 Load config from `~/.config/claude-pm/<DETECTED_REPO>.taskboard.json`. If missing, fail with: "No taskboard configured for this repo. Run `/task setup` first."
 
@@ -86,6 +87,7 @@ Display:
   note [number] <text> Append note to task body
   abandon <number>     Archive task, delete plan file
   setup                Bootstrap GitHub Project for this repo
+  board                Open the GitHub Project board in browser
   teardown             Delete GitHub Project and config for this repo
 ```
 
@@ -100,18 +102,39 @@ Display:
 3. **Project scope check**: Parse `gh auth status` output for the `project` scope (which implies `read:project`). If missing:
    - Warn the user: "Missing project scope. This will print a URL and code — open the URL in your browser and enter the code to authorize."
    - Run: `gh auth refresh -h github.com -s project`
-4. **Owner confirmation**: Show `DETECTED_OWNER` and `DETECTED_REPO` to the user. Ask them to confirm or provide the correct org/user for the GitHub Project.
-5. Check for existing project: `gh project list --owner <owner> --format json | jq '.projects[] | select(.title == "<repo>")'`. If exists → "Project '<repo>' already exists for <owner>. Config file may need to be created manually — check the project in GH UI."
-6. Check config file exists: if `~/.config/claude-pm/<repo>.taskboard.json` exists → "Setup already complete for this repo."
+4. **Fork resolution**: Query the GitHub API to check if the detected repo is a fork:
+   ```bash
+   gh api "repos/$DETECTED_OWNER/$DETECTED_REPO" --jq '{
+     name: .name,
+     owner: .owner.login,
+     owner_type: .owner.type,
+     is_fork: .fork,
+     parent_owner: .parent.owner.login,
+     parent_name: .parent.name
+   }'
+   ```
+   - If `is_fork` is true → set `RESOLVED_OWNER` to `parent_owner`, `RESOLVED_REPO` to `parent_name`
+   - If not a fork → set `RESOLVED_OWNER` to `owner`, `RESOLVED_REPO` to `name`
+   - If the API call fails (404, network error) → fall back to `DETECTED_OWNER`/`DETECTED_REPO` and warn: "Could not query repo metadata — fork detection skipped."
+5. **Owner and repo confirmation**: When a fork was detected, show:
+   > Detected fork `<DETECTED_OWNER>/<DETECTED_REPO>` → upstream `<RESOLVED_OWNER>/<RESOLVED_REPO>`.
+   > Project will be created under **<RESOLVED_OWNER>** with repo name **<RESOLVED_REPO>**. Confirm or correct.
+
+   When not a fork, show:
+   > Detected **<RESOLVED_OWNER>/<RESOLVED_REPO>**. Confirm or correct owner and repo name.
+
+   The user can override either value. After confirmation, use the confirmed values as `OWNER` and `REPO` for all subsequent steps.
+6. **Check for existing project**: Run `gh project list --owner <OWNER> --format json`. If this command fails (e.g. "unknown owner type"), surface a clear message: "Could not list projects for `<OWNER>`. Verify the owner is correct." and stop. Otherwise, check: `jq '.projects[] | select(.title == "<REPO>")'`. If exists → "Project '<REPO>' already exists for <OWNER>. Config file may need to be created manually — check the project in GH UI."
+7. Check config file exists: if `~/.config/claude-pm/<DETECTED_REPO>.taskboard.json` exists → "Setup already complete for this repo."
 
 **Steps**:
 
-1. Create project: `gh project create --owner <owner> --title "<repo>" --format json`
+1. Create project: `gh project create --owner <OWNER> --title "<REPO>" --format json`
 2. Extract project number and ID from the response
-3. Create Plan field: `gh project field-create <project_number> --owner <owner> --name "Plan" --data-type TEXT --format json`
+3. Create Plan field: `gh project field-create <project_number> --owner <OWNER> --name "Plan" --data-type TEXT --format json`
 4. Get the Status field ID:
    ```bash
-   gh project field-list <project_number> --owner <owner> --format json | jq '.fields[] | select(.name == "Status")'
+   gh project field-list <project_number> --owner <OWNER> --format json | jq '.fields[] | select(.name == "Status")'
    ```
 5. Configure Status field options via GraphQL (the CLI cannot edit single-select options directly).
    Valid colors: GRAY, BLUE, GREEN, YELLOW, ORANGE, RED, PINK, PURPLE.
@@ -144,14 +167,14 @@ Display:
 
 6. Ensure config directory exists: `mkdir -p ~/.config/claude-pm`
 
-7. Write config to `~/.config/claude-pm/<repo>.taskboard.json`.
+7. Write config to `~/.config/claude-pm/<DETECTED_REPO>.taskboard.json`.
    Extract `owner_type` from the create response (`owner.type`): `"User"` or `"Organization"`.
    ```json
    {
      "project_number": <number>,
-     "owner": "<owner>",
+     "owner": "<OWNER>",
      "owner_type": "User or Organization",
-     "repo": "<repo>",
+     "repo": "<REPO>",
      "project_id": "PVT_...",
      "field_ids": {
        "status": "PVTF_...",
@@ -171,7 +194,7 @@ Display:
    }
    ```
 
-8. Open the project in the browser: `gh project view <project_number> --owner <owner> --web`
+8. Open the project in the browser: `gh project view <project_number> --owner <OWNER> --web`
 
 9. The board view is ready — columns are auto-generated from the Status field options. Display the instructions below for the one manual step (the API cannot create views):
 
@@ -182,7 +205,20 @@ To add a Table view:
   1. Click "+ New view" (tab bar, top-left)
   2. Select "Table"
   3. Click "+" in the column header row → add "Plan"
+
+The Plan column shows the path to each task's plan file, linking board
+items to their living design docs (problem statement → design → criteria).
 ```
+
+After showing the instructions, ask: "Once that's done, would you like to see your new board?" If yes, open it: `gh project view <project_number> --owner <OWNER> --web`
+
+---
+
+## Subcommand: board
+
+1. Load config (standard repo detection + config loading). If no config exists, fail with the standard message.
+2. Open: `gh project view <project_number> --owner <owner> --web`
+3. Confirm: "Opened project board for `<repo>`."
 
 ---
 
@@ -209,7 +245,7 @@ This will permanently delete:
     (use /orgs/ instead of /users/ when owner_type is "Organization")
 
   Config file:
-    ~/.config/claude-pm/<repo>.taskboard.json
+    ~/.config/claude-pm/<DETECTED_REPO>.taskboard.json
 
   Plan files (<X> found):
     plans/001-foo.md
@@ -227,7 +263,7 @@ This cannot be undone.
 5. Use `AskUserQuestion` for final confirmation. Display the warning text and ask the user to type their response. The ONLY accepted confirmation is the exact phrase: **delete it all**. Any other input aborts with "Teardown aborted."
 6. On confirmation, execute in order:
    a. Delete GitHub Project: `gh project delete <project_number> --owner <owner> --format json`
-   b. Delete config file: `rm ~/.config/claude-pm/<repo>.taskboard.json`
+   b. Delete config file: `rm ~/.config/claude-pm/<DETECTED_REPO>.taskboard.json`
    c. If user opted in: delete each plan file listed
    d. If `plans/` directory is now empty, remove it: `rmdir plans 2>/dev/null`
 7. Confirm completion:
