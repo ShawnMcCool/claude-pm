@@ -173,35 +173,15 @@ Display:
 
 8. Open the project in the browser: `gh project view <project_number> --owner <owner> --web`
 
-9. Display the manual view setup instructions below. The GitHub API does not support creating or configuring views — this is the only step that requires manual work.
+9. The board view is ready — columns are auto-generated from the Status field options. Display the instructions below for the one manual step (the API cannot create views):
 
 ```
-========================================
-  MANUAL SETUP REQUIRED
-========================================
+Your board view is ready (Idea → Done columns).
 
-Your project is open in the browser. Two views need configuring:
-
-── 1. BOARD VIEW (the default view) ──────────────
-
-The default "Board" view starts with Todo / In Progress / Done
-columns. You need to replace these with the pipeline columns:
-
-  a. Click the ••• menu on each default column header
-     → "Delete column" to remove Todo, In Progress, and Done
-  b. Click "+ New column" (right side of the board)
-     → Add columns IN THIS ORDER, one at a time:
-       Idea → Define → Design → Plan → Implement → Verify → Ship → Done
-
-── 2. TABLE VIEW ─────────────────────────────────
-
-  a. Click "+ New view" (tab bar, top of project)
-     → Select "Table"
-  b. Click the "+" button in the column header area
-     → Add the "Plan" field as a visible column
-  c. (Optional) Hide any fields you don't need
-
-========================================
+To add a Table view:
+  1. Click "+ New view" (tab bar, top-left)
+  2. Select "Table"
+  3. Click "+" in the column header row → add "Plan"
 ```
 
 ---
