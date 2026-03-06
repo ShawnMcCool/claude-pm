@@ -15,7 +15,7 @@ ln -sfn "${REPO_DIR}/commands/task.md" "${CLAUDE_DIR}/commands/task.md"
 echo "  command: task.md"
 
 # Symlink skills
-for skill_dir in "${REPO_DIR}"/skills/task-*; do
+for skill_dir in "${REPO_DIR}"/skills/*/; do
   skill_name="$(basename "$skill_dir")"
   ln -sfn "${skill_dir}" "${CLAUDE_DIR}/skills/${skill_name}"
   echo "  skill:   ${skill_name}"
