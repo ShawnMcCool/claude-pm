@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# Create a GitHub Issue. Body is read from stdin.
+# Usage: task-issue-create <title>
+# Output: JSON {"number": N, "url": "..."}
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "${SCRIPT_DIR}/lib.sh"
+require_config
+
+[ $# -ge 1 ] || die "usage: task-issue-create <title>"
+title="$1"
+
+body=$(cat)
+tmpfile=$(mktemp)
+trap 'rm -f "$tmpfile"' EXIT
+printf '%s' "$body" > "$tmpfile"
+
+output=$(gh issue create --repo "${OWNER}/${REPO}" --title "$title" --body "$(cat "$tmpfile")" --no-edit 2>&1)
+url=$(echo "$output" | grep -oE 'https://github\.com/[^ ]+/issues/[0-9]+')
+number=$(echo "$url" | grep -oE '[0-9]+$')
+
+[ -n "$number" ] || die "failed to parse issue number from: ${output}"
+
+printf '{"number": %s, "url": "%s"}\n' "$number" "$url"

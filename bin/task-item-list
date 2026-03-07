@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# List all project items as JSON.
+# Usage: task-item-list
+# Output: JSON (full items array)
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "${SCRIPT_DIR}/lib.sh"
+require_config
+
+gh project item-list "$PROJECT_NUMBER" --owner "$OWNER" --format json --limit 100

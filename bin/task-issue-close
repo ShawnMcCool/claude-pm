@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Close an issue.
+# Usage: task-issue-close <number>
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "${SCRIPT_DIR}/lib.sh"
+require_config
+
+[ $# -ge 1 ] || die "usage: task-issue-close <number>"
+gh issue close "$1" --repo "${OWNER}/${REPO}"
+echo "Closed issue #${1}."

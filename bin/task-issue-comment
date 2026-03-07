@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Post a comment on an issue. Comment body is read from stdin.
+# Usage: task-issue-comment <number>
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "${SCRIPT_DIR}/lib.sh"
+require_config
+
+[ $# -ge 1 ] || die "usage: task-issue-comment <number>"
+number="$1"
+
+tmpfile=$(mktemp)
+trap 'rm -f "$tmpfile"' EXIT
+cat > "$tmpfile"
+
+gh issue comment "$number" --repo "${OWNER}/${REPO}" --body "$(cat "$tmpfile")"
+echo "Comment posted on issue #${number}."

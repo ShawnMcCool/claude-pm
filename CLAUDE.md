@@ -8,10 +8,11 @@ claude-pm is a task pipeline for Claude Code that uses **GitHub Projects as a sh
 
 ## Architecture
 
-**Command orchestrates, skills execute.** Two-layer separation:
+**Command orchestrates, scripts execute, skills converse.** Three-layer separation:
 
-- `commands/task.md` — The `/task` command. Handles all GitHub Projects board I/O (reads, writes, status transitions), argument parsing, config loading, and skill invocation. This is the router and state manager.
-- `skills/task-{define,design,plan,implement,verify,ship}/SKILL.md` — Six phase skills. Each receives a labeled context block from the command, does its work conversationally, and outputs a `completion` fenced block that the command parses to determine next steps.
+- `commands/task.md` — The `/task` command. Handles argument parsing, config loading, skill invocation, and phase transition decisions. This is the router and state manager.
+- `bin/` — Shell scripts that encapsulate all GitHub CLI operations. The command prompt calls them via Bash; they auto-load config from `~/.config/claude-pm/`. Installed to `~/.claude/bin/claude-pm/` via symlink. Scripts are deterministic — given the same inputs, they produce the same API calls.
+- `skills/task-{define,design,plan,implement,verify,ship}/SKILL.md` — Six phase skills (plus `gh-cli/SKILL.md`, a reference guide for GitHub CLI patterns). Each phase skill receives a labeled context block from the command, does its work conversationally, and outputs a `completion` fenced block that the command parses to determine next steps.
 
 Skills are stateless — they don't read or write the board directly. The command feeds them context and processes their output. Skills can also work standalone outside the pipeline.
 
@@ -20,8 +21,8 @@ Skills are stateless — they don't read or write the board directly. The comman
 - **Config**: Per-repo at `~/.config/claude-pm/<repo>.taskboard.json` — contains project IDs, field IDs, status option IDs
 - **Plan files**: `plans/<issue_number>-short-title.md` — living documents that grow through the pipeline (problem statement → design → implementation plan → checked-off criteria). Named by GitHub Issue number, not zero-padded.
 - **Session log**: Timestamped entries in the GitHub Issue body, format `[YYYY-MM-DD HH:MM] **Event** details`
-- **Body editing**: Use `gh issue edit <number> --repo <owner>/<repo> --body "..."` to update issue bodies. Read-append-write pattern; use temp files for long bodies to avoid shell quoting issues.
-- **Completion protocol**: Skills signal phase completion via a fenced `completion` block with fields: `status`, `plan`, `summary`, and optionally `regress_to`, `rework`, `impl`
+- **Body editing**: Use `task-issue-view` and `task-issue-edit-body` scripts (read-append-write pattern via stdin).
+- **Completion protocol**: Skills signal phase completion via a fenced `completion` block with fields: `status`, `plan`, `summary`, and optionally `regress_to`, `rework`, `impl`, `comment`
 - **Implementation IDs**: `impl-1`, `impl-2`, etc. — rework creates a new ID, fresh Verify each time
 - **Comments as artifacts**: The issue body holds a scannable session timeline (one-liners). Phase artifacts (problem statements, design rationale, verification reports, ship summaries) are posted as issue comments via the `comment` field in skill completion blocks.
 
@@ -31,7 +32,7 @@ Skills are stateless — they don't read or write the board directly. The comman
 ./install.sh
 ```
 
-Symlinks `commands/task.md` and all `skills/*/` directories into `~/.claude/`.
+Symlinks `commands/task.md`, all `skills/*/` directories, and `bin/` (as `bin/claude-pm/`) into `~/.claude/`.
 
 ## VCS
 

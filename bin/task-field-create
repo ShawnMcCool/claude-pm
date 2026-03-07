@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Create a project field.
+# Usage: task-field-create <project_number> <owner> <name> <type>
+# Output: JSON {"id": "PVTF_..."}
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "${SCRIPT_DIR}/lib.sh"
+
+[ $# -ge 4 ] || die "usage: task-field-create <project_number> <owner> <name> <type>"
+result=$(gh project field-create "$1" --owner "$2" --name "$3" --data-type "$4" --format json)
+id=$(echo "$result" | jq -r '.id')
+printf '{"id": "%s"}\n' "$id"

@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Query repo metadata including fork detection.
+# Usage: task-repo-info <owner> <repo>
+# Output: JSON {name, owner, owner_type, is_fork, parent_owner, parent_name}
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "${SCRIPT_DIR}/lib.sh"
+
+[ $# -ge 2 ] || die "usage: task-repo-info <owner> <repo>"
+gh api "repos/$1/$2" --jq '{
+  name: .name,
+  owner: .owner.login,
+  owner_type: .owner.type,
+  is_fork: .fork,
+  parent_owner: .parent.owner.login,
+  parent_name: .parent.name
+}'

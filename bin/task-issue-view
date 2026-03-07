@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Read an issue's body.
+# Usage: task-issue-view <number>
+# Output: raw body text
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "${SCRIPT_DIR}/lib.sh"
+require_config
+
+[ $# -ge 1 ] || die "usage: task-issue-view <number>"
+gh issue view "$1" --repo "${OWNER}/${REPO}" --json body --jq .body

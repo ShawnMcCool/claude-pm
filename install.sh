@@ -14,6 +14,17 @@ mkdir -p "${CLAUDE_DIR}/skills"
 ln -sfn "${REPO_DIR}/commands/task.md" "${CLAUDE_DIR}/commands/task.md"
 echo "  command: task.md"
 
+# Symlink bin (namespaced under claude-pm/)
+mkdir -p "${CLAUDE_DIR}/bin"
+target="${CLAUDE_DIR}/bin/claude-pm"
+if [ -d "$target" ] && [ ! -L "$target" ]; then
+  echo "ERROR: ${target} exists as a real directory (not a symlink)."
+  echo "       Remove it manually and re-run: rm -rf ${target}"
+  exit 1
+fi
+ln -sfn "${REPO_DIR}/bin" "$target"
+echo "  bin:     bin/claude-pm/"
+
 # Symlink skills
 for skill_dir in "${REPO_DIR}"/skills/*/; do
   skill_name="$(basename "$skill_dir")"

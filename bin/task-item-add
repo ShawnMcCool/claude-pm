@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Add an issue URL to the project board.
+# Usage: task-item-add <issue_url>
+# Output: JSON (gh response with item ID)
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "${SCRIPT_DIR}/lib.sh"
+require_config
+
+[ $# -ge 1 ] || die "usage: task-item-add <issue_url>"
+gh project item-add "$PROJECT_NUMBER" --owner "$OWNER" --url "$1" --format json

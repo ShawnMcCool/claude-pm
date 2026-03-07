@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Create a GitHub Project.
+# Usage: task-project-create <owner> <title>
+# Output: JSON {"number": N, "id": "PVT_..."}
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "${SCRIPT_DIR}/lib.sh"
+
+[ $# -ge 2 ] || die "usage: task-project-create <owner> <title>"
+result=$(gh project create --owner "$1" --title "$2" --format json)
+number=$(echo "$result" | jq -r '.number')
+id=$(echo "$result" | jq -r '.id')
+printf '{"number": %s, "id": "%s"}\n' "$number" "$id"

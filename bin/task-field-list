@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# List project fields.
+# Usage: task-field-list <project_number> <owner>
+# Output: JSON (field list)
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "${SCRIPT_DIR}/lib.sh"
+
+[ $# -ge 2 ] || die "usage: task-field-list <project_number> <owner>"
+gh project field-list "$1" --owner "$2" --format json

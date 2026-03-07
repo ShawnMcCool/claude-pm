@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# Configure status field options via GraphQL.
+# Usage: task-status-options-set <field_id>
+# Output: JSON {options: [{id, name}, ...]}
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "${SCRIPT_DIR}/lib.sh"
+
+[ $# -ge 1 ] || die "usage: task-status-options-set <field_id>"
+field_id="$1"
+
+result=$(gh api graphql -f query='
+  mutation($fieldId: ID!) {
+    updateProjectV2Field(input: {
+      fieldId: $fieldId
+      singleSelectOptions: [
+        {name: "Idea",      color: GRAY,   description: ""},
+        {name: "Define",    color: BLUE,   description: ""},
+        {name: "Design",    color: PURPLE, description: ""},
+        {name: "Plan",      color: ORANGE, description: ""},
+        {name: "Implement", color: YELLOW, description: ""},
+        {name: "Verify",    color: GREEN,  description: ""},
+        {name: "Ship",      color: RED,    description: ""},
+        {name: "Done",      color: PINK,   description: ""}
+      ]
+    }) {
+      projectV2Field {
+        ... on ProjectV2SingleSelectField {
+          options { id name }
+        }
+      }
+    }
+  }
+' -f fieldId="$field_id")
+
+echo "$result" | jq '{options: .data.updateProjectV2Field.projectV2Field.options}'

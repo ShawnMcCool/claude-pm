@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Set the status field on a board item.
+# Usage: task-status-set <item_id> <status_name>
+# Status names: Idea, Define, Design, Plan, Implement, Verify, Ship, Done
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "${SCRIPT_DIR}/lib.sh"
+require_config
+
+[ $# -ge 2 ] || die "usage: task-status-set <item_id> <status_name>"
+item_id="$1"
+status_name="$2"
+
+option_id=$(status_option_id "$status_name")
+
+gh project item-edit --project-id "$PROJECT_ID" --id "$item_id" \
+  --field-id "$STATUS_FIELD_ID" --single-select-option-id "$option_id"
+echo "Status set to ${status_name}."

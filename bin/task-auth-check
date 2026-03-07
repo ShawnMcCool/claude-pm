@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# Check gh auth status and project scope.
+# Usage: task-auth-check
+# Output: JSON {"gh_installed": bool, "authenticated": bool, "has_project_scope": bool}
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "${SCRIPT_DIR}/lib.sh"
+
+gh_installed=false
+authenticated=false
+has_project_scope=false
+
+if command -v gh &>/dev/null; then
+  gh_installed=true
+  if auth_output=$(gh auth status 2>&1); then
+    authenticated=true
+    if echo "$auth_output" | grep -q 'project'; then
+      has_project_scope=true
+    fi
+  fi
+fi
+
+printf '{"gh_installed": %s, "authenticated": %s, "has_project_scope": %s}\n' \
+  "$gh_installed" "$authenticated" "$has_project_scope"

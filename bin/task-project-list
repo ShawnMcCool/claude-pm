@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# List projects for an owner.
+# Usage: task-project-list <owner>
+# Output: JSON (project list)
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "${SCRIPT_DIR}/lib.sh"
+
+[ $# -ge 1 ] || die "usage: task-project-list <owner>"
+gh project list --owner "$1" --format json

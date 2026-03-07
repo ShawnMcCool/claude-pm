@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Delete a GitHub Project.
+# Usage: task-project-delete <project_number> <owner>
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "${SCRIPT_DIR}/lib.sh"
+
+[ $# -ge 2 ] || die "usage: task-project-delete <project_number> <owner>"
+gh project delete "$1" --owner "$2" --format json
+echo "Project deleted."

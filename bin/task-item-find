@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Find a single board item by issue number.
+# Usage: task-item-find <issue_number>
+# Output: JSON (single item object)
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "${SCRIPT_DIR}/lib.sh"
+require_config
+
+[ $# -ge 1 ] || die "usage: task-item-find <issue_number>"
+number="$1"
+
+result=$(gh project item-list "$PROJECT_NUMBER" --owner "$OWNER" --format json --limit 100 \
+  | jq --argjson n "$number" '.items[] | select(.content.number == $n and .content.type == "Issue")')
+
+[ -n "$result" ] || die "no item found for issue #${number}"
+echo "$result"

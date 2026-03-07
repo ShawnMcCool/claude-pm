@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Archive a board item.
+# Usage: task-item-archive <item_id>
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "${SCRIPT_DIR}/lib.sh"
+require_config
+
+[ $# -ge 1 ] || die "usage: task-item-archive <item_id>"
+gh project item-archive "$PROJECT_NUMBER" --owner "$OWNER" --id "$1"
+echo "Item archived."

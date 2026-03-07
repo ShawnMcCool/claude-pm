@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Set the plan text field on a board item.
+# Usage: task-plan-set <item_id> <plan_path>
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "${SCRIPT_DIR}/lib.sh"
+require_config
+
+[ $# -ge 2 ] || die "usage: task-plan-set <item_id> <plan_path>"
+item_id="$1"
+plan_path="$2"
+
+gh project item-edit --project-id "$PROJECT_ID" --id "$item_id" \
+  --field-id "$PLAN_FIELD_ID" --text "$plan_path"
+echo "Plan field set to ${plan_path}."
