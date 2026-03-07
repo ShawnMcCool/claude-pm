@@ -11,7 +11,7 @@ You are exploring solutions to a defined problem. The problem statement is alrea
 
 ```
 Title: <task title>
-Item: <item number>
+Issue: <issue number>
 Repo: <repo name>
 Body: |
   <current board body>
@@ -88,6 +88,22 @@ When the user confirms:
 status: done
 plan: <plan file path>
 summary: <one-line summary of the chosen approach>
+comment: |
+  ## Design
+
+  ### Approach
+  <chosen approach, 2-4 sentences>
+
+  ### Acceptance Criteria
+  - [ ] <criterion>
+  - [ ] Zero warnings in compilation and tests
+
+  ### Scope
+  **MVP**: <what's in>
+  **Deferred**: <what's out>
+
+  ### Design Decisions
+  <key choices with reasoning>
 ```
 ~~~
 

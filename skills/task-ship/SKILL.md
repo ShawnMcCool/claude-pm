@@ -11,7 +11,7 @@ You are performing the final quality gate before work leaves the repo. Documenta
 
 ```
 Title: <task title>
-Item: <item number>
+Issue: <issue number>
 Repo: <repo name>
 Plan: <plan file path>
 Verify: <verification command> (e.g. mix precommit)
@@ -124,6 +124,20 @@ When the user confirms:
 status: done
 plan: <plan file path>
 summary: Shipped — <descriptions and short hashes>
+comment: |
+  ## Ship Summary
+
+  ### Pushed
+  - `<hash>` <description>
+
+  ### Documentation
+  - <docs updated or "no changes needed">
+
+  ### Decision Records
+  - <ADRs created/verified or "none">
+
+  ### Cleanup
+  - <what was cleaned>
 ```
 ~~~
 

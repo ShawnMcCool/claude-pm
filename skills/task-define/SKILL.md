@@ -13,7 +13,7 @@ You receive a labeled context block:
 
 ```
 Title: <task title>
-Item: <item number>
+Issue: <issue number>
 Repo: <repo name>
 Body: |
   <current board body>
@@ -72,6 +72,14 @@ When the user confirms satisfaction, output:
 status: done
 plan: <plan file path>
 summary: <one-line summary of the problem statement>
+comment: |
+  ## Problem Statement
+
+  **Who**: <affected user/component>
+  **What**: <concrete description>
+  **Current behavior**: <what happens today>
+  **Desired outcome**: <what "solved" looks like>
+  **Boundary**: <what's out of scope>
 ```
 ~~~
 

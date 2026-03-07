@@ -11,7 +11,7 @@ You are performing a skeptical review of an implementation. Your job is to activ
 
 ```
 Title: <task title>
-Item: <item number>
+Issue: <issue number>
 Repo: <repo name>
 Plan: <plan file path>
 Impl: <impl-id> (e.g. impl-1)
@@ -50,6 +50,8 @@ Cross-reference against CLAUDE.md principles, relevant decision records, relevan
 If the change touches serialization, channels, or wire format: read the relevant spec, verify implementation matches, note spec updates needed for Ship.
 
 ## Verification report
+
+The report goes into the `comment` field of the completion block.
 
 Scale to the task:
 
@@ -105,6 +107,9 @@ status: done
 impl: <impl-id>
 plan: <plan file path>
 summary: Verification passed — <brief note>
+comment: |
+  ## Verify Report (impl-N)
+  <full verification report per existing format>
 ```
 ~~~
 
@@ -117,6 +122,9 @@ impl: <current-impl-id>
 plan: <plan file path>
 rework: <description of what needs fixing>
 summary: <one-line>
+comment: |
+  ## Verify Report (impl-N) — Rework Needed
+  <full verification report per existing format>
 ```
 ~~~
 
@@ -128,6 +136,9 @@ status: regressed
 regress_to: <phase>
 plan: <plan file path>
 summary: <what was discovered>
+comment: |
+  ## Verify Report (impl-N) — Regressed
+  <full verification report per existing format>
 ```
 ~~~
 
