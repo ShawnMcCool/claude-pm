@@ -11,7 +11,7 @@ You are planning how to implement a designed solution. The plan file already has
 
 ```
 Title: <task title>
-Item: <item number>
+Issue: <issue number>
 Repo: <repo name>
 Plan: <plan file path>
 Body: |

@@ -81,7 +81,7 @@ This creates a GitHub Project, configures the status fields, and saves the proje
 /task new Improve error messages when API key is missing
 ```
 
-The agent creates a board item and starts a **Define** conversation — asking questions to fully understand the problem before exploring solutions.
+The agent creates a GitHub Issue, adds it to the project board, and starts a **Define** conversation — asking questions to fully understand the problem before exploring solutions.
 
 ### See all your tasks
 
@@ -133,7 +133,7 @@ Mid-conversation, the task number is optional — the agent knows which task you
 /task abandon 7 approach was wrong
 ```
 
-Requires confirmation. Archives the board item and deletes the plan file.
+Requires confirmation. Closes the issue, archives the board item, and deletes the plan file.
 
 ### Tear down a project
 
@@ -141,7 +141,7 @@ Requires confirmation. Archives the board item and deletes the plan file.
 /task teardown
 ```
 
-Deletes the GitHub Project board and config file for the current repo. Shows a full inventory of what will be destroyed (item count, plan files, config path) and asks whether to include plan files. Requires you to type the exact phrase `delete it all` to confirm — anything else aborts.
+Closes all linked issues, deletes the GitHub Project board, and removes the config file for the current repo. Shows a full inventory of what will be destroyed (item count, plan files, config path) and asks whether to include plan files. Requires you to type the exact phrase `delete it all` to confirm — anything else aborts.
 
 ---
 
@@ -155,7 +155,7 @@ A parking lot. Drop ideas onto the board from the GitHub UI or via `/task new`. 
 
 ### 2. Define
 
-The agent leads a structured conversation to **fully articulate the problem** — who's affected, what's wrong, what the boundary conditions are. No solutions yet. The output is a problem statement written to a plan file (`plans/NNN-title.md`).
+The agent leads a structured conversation to **fully articulate the problem** — who's affected, what's wrong, what the boundary conditions are. No solutions yet. The output is a problem statement written to a plan file (`plans/<issue_number>-title.md`).
 
 ### 3. Design
 
@@ -185,19 +185,19 @@ Each pass has an **implementation ID** (`impl-1`, `impl-2`, ...) so rework is tr
 
 ### 8. Done
 
-Item archived. Plan file stays in the repo as documentation.
+Issue closed, board item archived. Plan file stays in the repo as documentation.
 
 ---
 
 ## Plan files
 
-Plan files are living documents that grow as a task moves through the pipeline. Each phase adds its section:
+Plan files are living documents that grow as a task moves through the pipeline. Each phase adds its section. Plan files are named by their GitHub Issue number:
 
 ```
 plans/
-  001-api-error-messages.md
-  002-backdrop-images.md
-  003-multi-episode-parser.md
+  1-api-error-messages.md
+  6-backdrop-images.md
+  14-multi-episode-parser.md
 ```
 
 **After Define:**
@@ -220,7 +220,7 @@ plans/
 
 ## Session log
 
-Every task carries a timestamped session log in the GitHub Projects item body. This is what enables context recovery across sessions.
+Every task carries a timestamped session log in its GitHub Issue body. This is what enables context recovery across sessions.
 
 ```markdown
 ## Session Log

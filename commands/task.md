@@ -56,20 +56,20 @@ date '+%Y-%m-%d %H:%M'
 
 ## Body editing pattern
 
-`gh project item-edit` replaces the full body. To append:
-1. Read current body (from item query)
+Use `gh issue edit` to update issue bodies. To append:
+1. Read current body (from `gh issue view <number> --repo <owner>/<repo> --json body --jq .body` or from item-list query)
 2. Append new entry
 3. Write body via temp file to avoid shell quoting issues:
 
 ```bash
-BODY="$(cat <<'BODYEOF'
+# Write full body to temp file
+cat > /tmp/task_body.tmp <<'BODYEOF'
 <full body content>
 BODYEOF
-)"
-gh project item-edit --project-id "$PROJECT_ID" --id "$ITEM_ID" --body "$BODY"
+gh issue edit <number> --repo <owner>/<repo> --body "$(cat /tmp/task_body.tmp)"
 ```
 
-For long bodies, write to a temp file and use `--body "$(cat /tmp/task_body.tmp)"`.
+No title required. No dual IDs. The issue number is sufficient.
 
 ---
 
@@ -262,13 +262,15 @@ This cannot be undone.
 4. If plan files exist, use `AskUserQuestion` asking: "Do you want to include plan files in the teardown?" (Yes/No)
 5. Use `AskUserQuestion` for final confirmation. Display the warning text and ask the user to type their response. The ONLY accepted confirmation is the exact phrase: **delete it all**. Any other input aborts with "Teardown aborted."
 6. On confirmation, execute in order:
-   a. Delete GitHub Project: `gh project delete <project_number> --owner <owner> --format json`
-   b. Delete config file: `rm ~/.config/claude-pm/<DETECTED_REPO>.taskboard.json`
-   c. If user opted in: delete each plan file listed
-   d. If `plans/` directory is now empty, remove it: `rmdir plans 2>/dev/null`
+   a. Close all linked issues: query `gh project item-list` for items with `content.type == "Issue"`, collect issue numbers, close each with `gh issue close <number> --repo <owner>/<repo>`
+   b. Delete GitHub Project: `gh project delete <project_number> --owner <owner> --format json`
+   c. Delete config file: `rm ~/.config/claude-pm/<DETECTED_REPO>.taskboard.json`
+   d. If user opted in: delete each plan file listed
+   e. If `plans/` directory is now empty, remove it: `rmdir plans 2>/dev/null`
 7. Confirm completion:
 ```
 Teardown complete.
+  - <N> linked issues closed
   - GitHub Project "<repo>" deleted
   - Config file removed
   - <N> plan files deleted (or: Plan files kept)
@@ -279,36 +281,40 @@ Teardown complete.
 ## Subcommand: new
 
 1. Derive a concise title from the description (short, descriptive, no verbs like "Add" or "Implement")
-2. Create draft item:
+2. Create a GitHub Issue:
    ```bash
-   gh project item-create <project_number> --owner <owner> --title "<title>" --format json
+   gh issue create --repo <owner>/<repo> --title "<title>" --body "## Session Log
+
+   [<timestamp>] **Define started**" --no-edit
    ```
-3. Extract item ID from response
-4. Set status to Define:
+   Extract the issue number and URL from the output.
+3. Add the issue to the project board:
+   ```bash
+   gh project item-add <project_number> --owner <owner> --url <issue_url> --format json
+   ```
+4. Get the project item ID for the new issue:
+   ```bash
+   gh project item-list <project_number> --owner <owner> --format json --limit 100 | jq -r '.items[] | select(.content.number == <issue_number> and .content.type == "Issue") | .id'
+   ```
+5. Set status to Define:
    ```bash
    gh project item-edit --project-id "$PROJECT_ID" --id "$ITEM_ID" --field-id "$STATUS_FIELD_ID" --single-select-option-id "$DEFINE_OPTION_ID"
    ```
-5. Initialize body:
-   ```
-   ## Session Log
-
-   [<timestamp>] **Define started**
-   ```
-6. Determine plan file number: `find plans -name "*.md" 2>/dev/null`, take max number + 1, zero-pad to 3
-7. Create plan file at `plans/NNN-short-title.md` with just the title header:
+6. Ensure `plans/` directory exists: `mkdir -p plans`
+7. Create plan file at `plans/<issue_number>-short-title.md` with just the title header:
    ```markdown
    # <Title>
    ```
 8. Set Plan field on board item:
    ```bash
-   gh project item-edit --project-id "$PROJECT_ID" --id "$ITEM_ID" --field-id "$PLAN_FIELD_ID" --text "plans/NNN-short-title.md"
+   gh project item-edit --project-id "$PROJECT_ID" --id "$ITEM_ID" --field-id "$PLAN_FIELD_ID" --text "plans/<issue_number>-short-title.md"
    ```
 9. Build skill context and invoke:
    ```
    Skill: task-define
    Args:
    Title: <title>
-   Item: <item_number>
+   Issue: <issue_number>
    Repo: <repo>
    Body: |
      ## Session Log
@@ -316,7 +322,7 @@ Teardown complete.
    ```
 10. After skill completes (look for `completion` block), update board:
     - Write final plan file content
-    - Append `[<timestamp>] **Define complete** <summary>` to body
+    - Append `[<timestamp>] **Define complete** <summary>` to body (using `gh issue edit`)
     - Set status to Design
 
 ---
@@ -328,14 +334,14 @@ Query the board:
 gh project item-list <project_number> --owner <owner> --format json --limit 100
 ```
 
-Parse items, group by status in pipeline order: Idea, Define, Design, Plan, Implement, Verify, Ship. Exclude Done (archived). Omit empty statuses.
+Parse items, group by status in pipeline order: Idea, Define, Design, Plan, Implement, Verify, Ship. Exclude Done (archived). Omit empty statuses. Only include items where `content.type == "Issue"`.
 
-For each item, extract the most recent body log entry (last line matching `[YYYY-MM-DD ...] ...`).
+For each item, extract the most recent body log entry (last line matching `[YYYY-MM-DD ...] ...`). Use `content.number` as the issue number.
 
 Display format:
 ```
 ## <Status> (<count>)
-  #<number>  <title>
+  #<issue_number>  <title>
       Last: [<date>] <entry>
 ```
 
@@ -348,9 +354,13 @@ For items in Implement or Verify, extract and show the impl ID if present.
 1. If no number provided, use `AskUserQuestion` to ask "Which task number?"
 2. Query the item:
    ```bash
-   gh project item-list <project_number> --owner <owner> --format json --limit 100 | jq '.items[] | select(...)'
+   gh project item-list <project_number> --owner <owner> --format json --limit 100 | jq '.items[] | select(.content.number == <n> and .content.type == "Issue")'
    ```
-   Find the item by number. Extract title, status, body, plan field.
+   Find the issue by number. Extract title, status, plan field, and the project item ID (`id`).
+   Read the issue body separately:
+   ```bash
+   gh issue view <n> --repo <owner>/<repo> --json body --jq .body
+   ```
 3. Read the plan file if it exists.
 4. Get current diff: `jj diff --stat` (if in Implement/Verify/Ship)
 
@@ -377,7 +387,7 @@ After skill completes, handle board updates based on the completion block.
 
 Only valid mid-conversation. If no active task context in the conversation, tell the user there's nothing to pause.
 
-1. Determine current task from conversation context (item number, title, status, phase)
+1. Determine current task from conversation context (issue number, title, status, phase)
 2. Generate phase-aware pause entry:
    - **Define/Design**: what's been established, what questions remain
    - **Plan**: what's been explored, what's still unmapped
@@ -397,10 +407,10 @@ Only valid mid-conversation. If no active task context in the conversation, tell
 ## Subcommand: note
 
 Parse arguments:
-- If first word is a number: `note <number> <text>` — use that item number
+- If first word is a number: `note <number> <text>` — use that issue number
 - Otherwise: `note <text>` — use current task from conversation context
 
-If no item can be determined, ask the user which task number.
+If no issue can be determined, ask the user which task number.
 
 Append to body:
 ```
@@ -415,7 +425,7 @@ The agent may add brief context from the current phase if useful, but keeps it m
 
 Number is always required.
 
-1. Query the item to get title, status, plan field, body
+1. Query the item to get title, status, plan field. Read the issue body via `gh issue view`.
 2. Present confirmation:
    - Task number and title
    - Current status and criteria progress (if applicable)
@@ -423,9 +433,13 @@ Number is always required.
    - Whether there are uncommitted code changes (`jj diff --stat`)
 3. Use `AskUserQuestion` for explicit confirmation
 4. On confirmation:
-   - Append `[<timestamp>] **Abandoned** <reason if provided>` to body
+   - Append `[<timestamp>] **Abandoned** <reason if provided>` to body (using `gh issue edit`)
    - Delete plan file if it exists
-   - Archive the item:
+   - Close the issue:
+     ```bash
+     gh issue close <number> --repo <owner>/<repo>
+     ```
+   - Archive the project item:
      ```bash
      gh project item-archive <project_number> --owner <owner> --id "$ITEM_ID"
      ```
@@ -450,7 +464,7 @@ gh project item-edit --project-id "$PROJECT_ID" --id "$ITEM_ID" \
 ```
 
 ### Append to body
-Read current body → append → write back (see body editing pattern above).
+Read current body via `gh issue view <number> --repo <owner>/<repo> --json body --jq .body` → append → write back via `gh issue edit` (see body editing pattern above).
 
 ---
 
@@ -462,7 +476,7 @@ Build a labeled text block with the fields the skill expects, then invoke via th
 Skill: task-<phase>
 Args:
 Title: <title>
-Item: <item_number>
+Issue: <issue_number>
 Repo: <repo>
 Plan: <plan_path>
 Body: |
@@ -480,12 +494,22 @@ summary: <one-line>
 regress_to: <phase>       (only if status: regressed)
 rework: <description>     (only if rework needed)
 impl: <impl_id>           (only if implement/verify)
+comment: <markdown>       (optional, posted as issue comment)
+```
+
+If the completion block contains a `comment` field (multiline, indicated by `comment: |` followed by indented lines), post it as an issue comment before any other updates:
+
+```bash
+cat > /tmp/task_comment.tmp <<'COMMENTEOF'
+<comment content>
+COMMENTEOF
+gh issue comment <number> --repo <owner>/<repo> --body "$(cat /tmp/task_comment.tmp)"
 ```
 
 Based on completion status:
-- **done**: Update body, advance status to next phase
+- **done**: Post comment (if present) → update body → advance status to next phase
 - **paused**: Update body with pause context, stay at current status
-- **regressed**: Update body with regression reason, set status to target phase
+- **regressed**: Post comment (if present) → update body with regression reason → set status to target phase
 
 ---
 
@@ -499,5 +523,5 @@ Based on completion status:
 | Implement | Verify | Append "Implement complete impl-N", set status Verify |
 | Verify | Ship | Append "Verify passed impl-N", set status Ship |
 | Verify | Implement | Append "Rework needed impl-N+1: reason", set status Implement |
-| Ship | Done | Append push details, set status Done, archive item |
+| Ship | Done | Append push details, set status Done, close issue (`gh issue close`), archive item |
 | Any | Earlier | Append "Regressed to <phase>: reason", set status to target |

@@ -18,11 +18,12 @@ Skills are stateless — they don't read or write the board directly. The comman
 ## Key conventions
 
 - **Config**: Per-repo at `~/.config/claude-pm/<repo>.taskboard.json` — contains project IDs, field IDs, status option IDs
-- **Plan files**: `plans/NNN-short-title.md` — living documents that grow through the pipeline (problem statement → design → implementation plan → checked-off criteria)
-- **Session log**: Timestamped entries in the GitHub Projects item body, format `[YYYY-MM-DD HH:MM] **Event** details`
-- **Body editing**: `gh project item-edit` replaces the full body, so always read-append-write. Use temp files for long bodies to avoid shell quoting issues.
+- **Plan files**: `plans/<issue_number>-short-title.md` — living documents that grow through the pipeline (problem statement → design → implementation plan → checked-off criteria). Named by GitHub Issue number, not zero-padded.
+- **Session log**: Timestamped entries in the GitHub Issue body, format `[YYYY-MM-DD HH:MM] **Event** details`
+- **Body editing**: Use `gh issue edit <number> --repo <owner>/<repo> --body "..."` to update issue bodies. Read-append-write pattern; use temp files for long bodies to avoid shell quoting issues.
 - **Completion protocol**: Skills signal phase completion via a fenced `completion` block with fields: `status`, `plan`, `summary`, and optionally `regress_to`, `rework`, `impl`
 - **Implementation IDs**: `impl-1`, `impl-2`, etc. — rework creates a new ID, fresh Verify each time
+- **Comments as artifacts**: The issue body holds a scannable session timeline (one-liners). Phase artifacts (problem statements, design rationale, verification reports, ship summaries) are posted as issue comments via the `comment` field in skill completion blocks.
 
 ## Installation
 

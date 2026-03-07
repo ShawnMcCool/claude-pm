@@ -17,7 +17,13 @@ echo "  command: task.md"
 # Symlink skills
 for skill_dir in "${REPO_DIR}"/skills/*/; do
   skill_name="$(basename "$skill_dir")"
-  ln -sfn "${skill_dir}" "${CLAUDE_DIR}/skills/${skill_name}"
+  target="${CLAUDE_DIR}/skills/${skill_name}"
+  if [ -d "$target" ] && [ ! -L "$target" ]; then
+    echo "ERROR: ${target} exists as a real directory (not a symlink)."
+    echo "       Remove it manually and re-run: rm -rf ${target}"
+    exit 1
+  fi
+  ln -sfn "${skill_dir}" "$target"
   echo "  skill:   ${skill_name}"
 done
 

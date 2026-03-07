@@ -11,7 +11,7 @@ You are writing code to implement a planned solution. The plan file has the full
 
 ```
 Title: <task title>
-Item: <item number>
+Issue: <issue number>
 Repo: <repo name>
 Plan: <plan file path>
 Body: |
