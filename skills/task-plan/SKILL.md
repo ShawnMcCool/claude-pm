@@ -87,6 +87,17 @@ When the user confirms:
 status: done
 plan: <plan file path>
 summary: <one-line summary of the implementation plan>
+comment: |
+  ## Implementation Plan
+
+  ### Files to Modify
+  - <files and brief descriptions>
+
+  ### Order of Changes
+  1. <first change>
+
+  ### Test Strategy
+  - <test approach>
 ```
 ~~~
 

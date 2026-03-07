@@ -89,7 +89,7 @@ Scale to the task:
 **Minor fixes** (typos, missing assertion, unused variable, small logic fix):
 - Fix inline during Verify. No new implementation ID.
 - Re-run verification after fix.
-- Note: will be recorded as `Minor fix during verify: <description>`
+- Note: recorded in the verification report (the `comment` field) as `Minor fix during verify: <description>`
 
 **Significant rework** (missing edge case, incorrect approach, failed criterion, architectural violation):
 - Present the rework scope to the user
@@ -104,9 +104,9 @@ Scale to the task:
 ~~~
 ```completion
 status: done
-impl: <impl-id>
 plan: <plan file path>
 summary: Verification passed — <brief note>
+impl: <impl-id>
 comment: |
   ## Verify Report (impl-N)
   <full verification report per existing format>
@@ -118,10 +118,10 @@ comment: |
 ~~~
 ```completion
 status: rework
-impl: <current-impl-id>
 plan: <plan file path>
-rework: <description of what needs fixing>
 summary: <one-line>
+rework: <description of what needs fixing>
+impl: <current-impl-id>
 comment: |
   ## Verify Report (impl-N) — Rework Needed
   <full verification report per existing format>
@@ -133,9 +133,9 @@ comment: |
 ~~~
 ```completion
 status: regressed
-regress_to: <phase>
 plan: <plan file path>
 summary: <what was discovered>
+regress_to: <phase>
 comment: |
   ## Verify Report (impl-N) — Regressed
   <full verification report per existing format>

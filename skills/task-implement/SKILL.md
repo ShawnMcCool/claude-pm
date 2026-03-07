@@ -94,8 +94,16 @@ When the user confirms:
 ```completion
 status: done
 plan: <plan file path>
-impl: <impl-id>
 summary: <one-line summary of what was implemented>
+impl: <impl-id>
+comment: |
+  ## Implementation Summary (impl-N)
+
+  ### Criteria Progress
+  - [x] <checked-off criteria>
+
+  ### Key Decisions
+  - <any implementation decisions made>
 ```
 ~~~
 
